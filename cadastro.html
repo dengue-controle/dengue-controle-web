@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Dengue - Cadastro de Atividade</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        .coord-helper {
+            display: flex;
+            gap: 0.5em;
+            align-items: center;
+            margin-top: 0.3em;
+        }
+        
+        input[type="checkbox"]:focus,
+        input[type="radio"]:focus {
+            outline: none;
+        }
+        
+        .slide-content {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.4s ease-out, opacity 0.3s ease-out, margin 0.3s ease-out;
+            margin-top: 0;
+        }
+        
+        .slide-content.show {
+            max-height: 1500px;
+            opacity: 1;
+            margin-top: 1em;
+        }
+		
+		#form-vistoria {
+			padding: 1.8em;
+		}
+		
+		#campoOutroCriadouro {
+            margin-top: 1em;
+        }
+
+        #localLarvasCheckboxes {
+            margin-top: 1em;
+        }
+    </style>
+</head>
+<body>
+    <!-- Placeholder para o header -->
+    <div id="header-placeholder"></div>
+
+    <div id="conteudo">
+        <div class="conteudo-titulo">
+            <h1>Cadastrar Atividade para Controle de Dengue</h1>
+        </div>
+
+        <div class="conteudo-corpo">
+            <form id="form-vistoria">
+                <fieldset>
+                    <legend>Dados do Imóvel</legend>
+
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="fieldcontain">
+                                <label for="modulo">Módulo:</label>
+                                <input type="text" id="modulo" name="modulo" required>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fieldcontain">
+                                <label for="quadra">Quadra:</label>
+                                <input type="text" id="quadra" name="quadra" required>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fieldcontain">
+                                <label for="lote">Lote:</label>
+                                <input type="text" id="lote" name="lote" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="fieldcontain">
+                                <label for="logradouro">Logradouro:</label>
+                                <input type="text" id="logradouro" name="logradouro" required>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fieldcontain">
+                                <label for="numero">Número:</label>
+                                <input type="text" id="numero" name="numero" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="fieldcontain">
+                                <label for="condominio">Nome do Condomínio:</label>
+                                <input type="text" id="condominio" name="condominio">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="fieldcontain">
+                                <label for="edificacao">Edificação:</label>
+                                <select id="edificacao" name="edificacao" required>
+                                    <option value="">Selecione</option>
+                                    <option value="Residência">Residência</option>
+                                    <option value="Edifício">Edifício</option>
+                                    <option value="Village">Village</option>
+                                    <option value="Comércio">Comércio</option>
+                                    <option value="Lote vazio">Lote vazio</option>
+                                    <option value="Obra">Obra</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <legend>Localização GPS</legend>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="fieldcontain">
+                                <label for="latitude">Latitude:</label>
+                                <input type="text" id="latitude" name="latitude" placeholder="Ex: -23.550520" required>
+                                <div class="coord-helper">
+                                    <button type="button" class="btn-map" onclick="getLocation()">
+                                        <i class="fas fa-location-arrow"></i> Obter Localização
+                                    </button>
+                                    <div class="loading" id="loadingCoord"></div>
+                                </div>
+                                <div class="error-msg" id="errorCoord"></div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="fieldcontain">
+                                <label for="longitude">Longitude:</label>
+                                <input type="text" id="longitude" name="longitude" placeholder="Ex: -46.633308" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <legend>Dados da Atividade</legend>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="fieldcontain">
+                                <label for="dataVistoria">Data da Atividade:</label>
+                                <input type="date" id="dataVistoria" name="dataVistoria" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="fieldcontain">
+                                <label for="atividade">Tipo da Atividade:</label>
+                                <select id="atividade" name="atividade" required>
+                                    <option value="">Selecione</option>
+                                    <option value="Vistoria">Vistoria</option>
+                                    <option value="Ausente">Ausente</option>
+                                    <option value="Recusa">Recusa</option>
+									<option value="Vazio">Lote vazio</option>
+									<option value="Retorno">Retorno</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="fieldcontain">
+                                <label for="agente">Agente:</label>
+                                <input type="text" id="agente" name="agente" required>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fieldcontain">
+                                <label for="agenteAcomp1">Agente Acompanhante 1:</label>
+                                <input type="text" id="agenteAcomp1" name="agenteAcomp1">
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fieldcontain">
+                                <label for="agenteAcomp2">Agente Acompanhante 2:</label>
+                                <input type="text" id="agenteAcomp2" name="agenteAcomp2">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="fieldcontain">
+                                <label for="responsavel">Responsável:</label>
+                                <input type="text" id="responsavel" name="responsavel">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="fieldcontain">
+                                <label for="funcao">Função:</label>
+                                <select id="funcao" name="funcao">
+                                    <option value="">Selecione</option>
+                                    <option value="Zelador">Zelador</option>
+                                    <option value="Caseiro">Caseiro</option>
+                                    <option value="Proprietário">Proprietário</option>
+                                    <option value="Funcionário">Funcionário</option>
+                                    <option value="Locatário">Locatário</option>
+                                    <option value="Terceirizado">Terceirizado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <legend>Identificação de Criadouros</legend>
+
+                    <div class="fieldcontain">
+                        <label>Criadouro Encontrado:</label>
+                        <div class="checkbox-list">
+                            <div class="checkbox-item">
+                                <input type="radio" id="criadouroNao" name="criadouro" value="Não" checked onchange="toggleCriadouros()">
+                                <label for="criadouroNao">Não</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="radio" id="criadouroSim" name="criadouro" value="Sim" onchange="toggleCriadouros()">
+                                <label for="criadouroSim">Sim</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="criadourosDetalhes" class="slide-content">
+                        <div class="fieldcontain">
+                            <label>Tipos de Criadouros:</label>
+                            <div class="checkbox-list col-2">
+								<div class="checkbox-item">
+									<input type="checkbox" id="tipo_bromelia" name="tiposCriadouro" value="Bromélia">
+									<label for="tipo_bromelia">Bromélia</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="tipo_ravenala" name="tiposCriadouro" value="Ravenala">
+									<label for="tipo_ravenala">Ravenala</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="tipo_heliconia" name="tiposCriadouro" value="Helicônia">
+									<label for="tipo_heliconia">Helicônia</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="tipo_vaso" name="tiposCriadouro" value="Vaso de planta">
+									<label for="tipo_vaso">Vaso de planta</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="tipo_pratinho_vaso" name="tiposCriadouro" value="Pratinho de vaso">
+									<label for="tipo_pratinho_vaso">Pratinho de vaso</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="tipo_fonte" name="tiposCriadouro" value="Fonte">
+									<label for="tipo_fonte">Fonte</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="tipo_espelho" name="tiposCriadouro" value="Espelho d'água">
+									<label for="tipo_espelho">Espelho d'água</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="piscinas" name="tiposCriadouro" value="Piscinas">
+									<label for="piscinas">Piscinas</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="material_inservivel" name="tiposCriadouro" value="Material inservível">
+									<label for="material_inservivel">Material inservível</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="entulho" name="tiposCriadouro" value="Entulho">
+									<label for="entulho">Entulho</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="balde" name="tiposCriadouro" value="Balde">
+									<label for="balde">Balde</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="tipo_pneu" name="tiposCriadouro" value="Pneu">
+									<label for="tipo_pneu">Pneu</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="tipo_lata" name="tiposCriadouro" value="Lata/recipiente">
+									<label for="tipo_lata">Lata/recipiente</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="suporte_guarda_sol" name="tiposCriadouro" value="Suporte de guarda-de-sol">
+									<label for="suporte_guarda_sol">Suporte de guarda-de-sol</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="ralo" name="tiposCriadouro" value="Ralo">
+									<label for="ralo">Ralo</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="vaso_sanitario" name="tiposCriadouro" value="Vaso sanitário">
+									<label for="vaso_sanitario">Vaso sanitário</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="lona" name="tiposCriadouro" value="Lona">
+									<label for="lona">Lona</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="tipo_caixa" name="tiposCriadouro" value="Caixa d'água">
+									<label for="tipo_caixa">Caixa d'água</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="brinquedo_playground" name="tiposCriadouro" value="Brinquedo/Playground">
+									<label for="brinquedo_playground">Brinquedo/Playground</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="comedouro_animais" name="tiposCriadouro" value="Comedouro de animais">
+									<label for="comedouro_animais">Comedouro de animais</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="tipo_calha" name="tiposCriadouro" value="Calha">
+									<label for="tipo_calha">Calha</label>
+								</div>
+								<div></div>
+								<div>
+									<button type="button" class="btn btn-secondary" onclick="adicionarOutroCriadouro()">
+										<i class="fas fa-plus"></i> Outros
+									</button>
+								</div>
+							</div>
+                        </div>
+						
+						<div id="outrosCriadouros" style="margin-top: 1em;"></div>
+
+                        <div class="fieldcontain">
+                            <label>Larvas Encontradas:</label>
+                            <div class="checkbox-list">
+                                <div class="checkbox-item">
+                                    <input type="radio" id="larvasNao" name="larvas" value="Não" checked onchange="toggleLarvas()">
+                                    <label for="larvasNao">Não</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="radio" id="larvasSim" name="larvas" value="Sim" onchange="toggleLarvas()">
+                                    <label for="larvasSim">Sim</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="localLarvasDiv" class="slide-content">
+                            <div class="fieldcontain">
+                                <label>Selecione os locais onde as larvas foram encontradas:</label>
+                                <div id="localLarvasCheckboxes" class="checkbox-list"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <legend>Ações Realizadas</legend>
+
+                    <div class="fieldcontain checkbox-list">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="coleta" name="coleta" value="Sim">
+                            <label for="coleta">Coleta realizada</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="adesivo" name="adesivo" value="Sim">
+                            <label for="adesivo">Adesivo aplicado</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="aviso" name="aviso" value="Sim">
+                            <label for="aviso">Aviso deixado</label>
+                        </div>
+						<div class="checkbox-item">
+                            <input type="checkbox" id="orientacoes" name="orientacoes" value="Sim">
+                            <label for="orientacoes">Orientações ao responsável</label>
+                        </div>
+                    </div>
+
+                    <div class="fieldcontain">
+                        <label for="observacao">Observações:</label>
+                        <textarea id="observacao" name="observacao" placeholder="Descreva detalhes adicionais da vistoria..."></textarea>
+                    </div>
+
+                    <legend>Agendamento de Retorno</legend>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="fieldcontain">
+                                <label for="dataRetorno">Data de Retorno:</label>
+                                <input type="date" id="dataRetorno" name="dataRetorno">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="fieldcontain">
+                                <label for="motivoRetorno">Motivo do Retorno:</label>
+                                <select id="motivoRetorno" name="motivoRetorno">
+                                    <option value="">Selecione</option>
+                                    <option value="Ausente">Morador ausente</option>
+                                    <option value="Recusa">Recusa de vistoria</option>
+                                    <option value="Larvas">Larvas identificadas</option>
+                                    <option value="Acompanhamento">Acompanhamento</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Salvar Vistoria
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="limparFormulario()">
+                        <i class="fas fa-eraser"></i> Limpar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/header.js"></script>
+    <script>
+        // Definir data atual
+        document.getElementById('dataVistoria').valueAsDate = new Date();
+
+        let outrosCriadourosCount = 0;
+        const MAX_OUTROS_CRIADOUROS = 5;
+		
+		// --- MONITORA SELEÇÃO DE CRIADOUROS PADRÕES ---
+		document.querySelectorAll('input[name="tiposCriadouro"]').forEach(cb => {
+			cb.addEventListener('change', atualizarLocalLarvasSeAtivo);
+		});
+
+        // Função para adicionar campo "Outro criadouro"
+        // Função para adicionar campo "Outro criadouro"
+		function adicionarOutroCriadouro() {
+			if (outrosCriadourosCount >= MAX_OUTROS_CRIADOUROS) {
+				alert(`Você pode adicionar no máximo ${MAX_OUTROS_CRIADOUROS} outros criadouros.`);
+				return;
+			}
+
+			outrosCriadourosCount++;
+			const container = document.getElementById('outrosCriadouros');
+			
+			const div = document.createElement('div');
+			div.className = 'fieldcontain';
+			div.id = `outro-criadouro-${outrosCriadourosCount}`;
+			div.style.marginBottom = '0.8em';
+			
+			div.innerHTML = `
+				<label for="outroCriadouro${outrosCriadourosCount}">Outro Criadouro ${outrosCriadourosCount}:</label>
+				<div style="display: flex; gap: 0.5em; padding-left: .15em;">
+					<input type="text" 
+						   id="outroCriadouro${outrosCriadourosCount}" 
+						   name="outroCriadouro${outrosCriadourosCount}" 
+						   placeholder="Descreva o criadouro"
+						   oninput="atualizarLocalLarvasSeAtivo()">
+					<button type="button" class="btn btn-secondary" onclick="removerOutroCriadouro(${outrosCriadourosCount})" style="padding: 0.5em 1em;">
+						<i class="fas fa-trash"></i>
+					</button>
+				</div>
+			`;
+			
+			container.appendChild(div);
+			atualizarLocalLarvasSeAtivo();
+		}
+
+        // Função para remover campo "Outro criadouro"
+        function removerOutroCriadouro(id) {
+			const elemento = document.getElementById(`outro-criadouro-${id}`);
+			if (elemento) {
+				elemento.remove();
+				outrosCriadourosCount--;
+				atualizarLocalLarvasSeAtivo();
+			}
+		}
+
+        // Função para atualizar local das larvas apenas se "Larvas Sim" estiver marcado
+        function atualizarLocalLarvasSeAtivo() {
+            const larvasSim = document.getElementById('larvasSim').checked;
+            if (larvasSim) {
+                atualizarLocalLarvas();
+            }
+        }
+
+        // Função para atualizar checkboxes de local das larvas
+		function atualizarLocalLarvas() {
+			const container = document.getElementById('localLarvasCheckboxes');
+			const criadourosSelecionados = [];
+
+			// Pega criadouros padrões marcados
+			document.querySelectorAll('input[name="tiposCriadouro"]:checked').forEach(cb => {
+				criadourosSelecionados.push(cb.value);
+			});
+
+			// Pega os "outros" criadouros preenchidos
+			for (let i = 1; i <= MAX_OUTROS_CRIADOUROS; i++) {
+				const input = document.getElementById(`outroCriadouro${i}`);
+				if (input && input.value.trim()) {
+					criadourosSelecionados.push(input.value.trim());
+				}
+			}
+
+			// Guarda estado anterior (checkboxes já marcados)
+			const estadoAnterior = {};
+			container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+				estadoAnterior[cb.value] = cb.checked;
+			});
+
+			// Limpa lista e recria checkboxes
+			container.innerHTML = '';
+			criadourosSelecionados.forEach((criadouro, index) => {
+				const div = document.createElement('div');
+				div.className = 'larva-checkbox-item checkbox-item';
+				
+				const checkbox = document.createElement('input');
+				checkbox.type = 'checkbox';
+				checkbox.id = `local_larva_${index}`;
+				checkbox.name = 'localLarvas';
+				checkbox.value = criadouro;
+
+				// Restaura estado anterior se já estava marcado
+				if (estadoAnterior[criadouro]) checkbox.checked = true;
+
+				const label = document.createElement('label');
+				label.htmlFor = `local_larva_${index}`;
+				label.textContent = criadouro;
+
+				div.appendChild(checkbox);
+				div.appendChild(label);
+				container.appendChild(div);
+			});
+		}
+
+        // Função para mostrar/ocultar detalhes de criadouros
+        function toggleCriadouros() {
+            const criadouroSim = document.getElementById('criadouroSim').checked;
+            const detalhes = document.getElementById('criadourosDetalhes');
+            
+            if (criadouroSim) {
+                detalhes.classList.add('show');
+            } else {
+                detalhes.classList.remove('show');
+                // Limpar seleções após a transição
+                setTimeout(() => {
+                    if (!detalhes.classList.contains('show')) {
+                        document.querySelectorAll('input[name="tiposCriadouro"]').forEach(cb => cb.checked = false);
+                        document.getElementById('outrosCriadouros').innerHTML = '';
+                        outrosCriadourosCount = 0;
+                        document.getElementById('larvasNao').checked = true;
+                        toggleLarvas();
+                    }
+                }, 300);
+            }
+        }
+
+        // Função para mostrar/ocultar campo local das larvas
+        function toggleLarvas() {
+            const larvasSim = document.getElementById('larvasSim').checked;
+            const localDiv = document.getElementById('localLarvasDiv');
+            
+            if (larvasSim) {
+				if(document.querySelectorAll('input[name="tiposCriadouro"]:checked').length < 1) {
+					alert('Necessário selecionar pelo menos um criadouro');
+					document.getElementById('larvasNao').checked = true;
+					return;
+				}
+                localDiv.classList.add('show');
+                atualizarLocalLarvas();
+            } else {
+                localDiv.classList.remove('show');
+                // Limpar checkboxes após a transição
+                setTimeout(() => {
+                    if (!localDiv.classList.contains('show')) {
+                        document.getElementById('localLarvasCheckboxes').innerHTML = '';
+                    }
+                }, 300);
+            }
+        }
+
+        // Função para obter localização
+        function getLocation() {
+            const loading = document.getElementById('loadingCoord');
+            const errorMsg = document.getElementById('errorCoord');
+            
+            loading.style.display = 'block';
+            errorMsg.textContent = '';
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        document.getElementById('latitude').value = position.coords.latitude.toFixed(6);
+                        document.getElementById('longitude').value = position.coords.longitude.toFixed(6);
+                        loading.style.display = 'none';
+                    },
+                    function(error) {
+                        loading.style.display = 'none';
+                        errorMsg.textContent = 'Erro ao obter localização: ' + error.message;
+                    }
+                );
+            } else {
+                loading.style.display = 'none';
+                errorMsg.textContent = 'Geolocalização não é suportada neste navegador.';
+            }
+        }
+
+        // Submissão do formulário
+        document.getElementById('form-vistoria').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {};
+            
+            // Processar campos normais
+            for (let [key, value] of formData.entries()) {
+                if (key !== 'tiposCriadouro' && key !== 'localLarvas') {
+                    data[key] = value;
+                }
+            }
+            
+            // Processar tipos de criadouros (múltipla seleção)
+            const tiposSelecionados = [];
+            document.querySelectorAll('input[name="tiposCriadouro"]:checked').forEach(cb => {
+                tiposSelecionados.push(cb.value);
+            });
+            
+            // Adicionar outros criadouros
+            for (let i = 1; i <= MAX_OUTROS_CRIADOUROS; i++) {
+                const input = document.getElementById(`outroCriadouro${i}`);
+                if (input && input.value.trim()) {
+                    tiposSelecionados.push(input.value.trim());
+                }
+            }
+            
+            data.tiposCriadouro = tiposSelecionados.join(', ');
+            
+            // Processar local das larvas (múltipla seleção)
+            const locaisLarvas = [];
+            document.querySelectorAll('input[name="localLarvas"]:checked').forEach(cb => {
+                locaisLarvas.push(cb.value);
+            });
+            data.localLarvas = locaisLarvas.join(', ');
+            
+            // Adicionar coordenadas
+            data.latitude = document.getElementById('latitude').value;
+            data.longitude = document.getElementById('longitude').value;
+            
+            // Salvar no localStorage
+            let vistorias = JSON.parse(localStorage.getItem('vistorias') || '[]');
+            data.id = Date.now();
+            data.dataCadastro = new Date().toISOString();
+            vistorias.push(data);
+            localStorage.setItem('vistorias', JSON.stringify(vistorias));
+            
+            alert('Vistoria cadastrada com sucesso!');
+            limparFormulario();
+        });
+
+        function limparFormulario() {
+            document.getElementById('form-vistoria').reset();
+            document.getElementById('dataVistoria').valueAsDate = new Date();
+            document.getElementById('criadourosDetalhes').classList.remove('show');
+            document.getElementById('localLarvasDiv').classList.remove('show');
+            document.getElementById('localLarvasCheckboxes').innerHTML = '';
+            document.getElementById('outrosCriadouros').innerHTML = '';
+            outrosCriadourosCount = 0;
+        }
+    </script>
+</body>
+</html>

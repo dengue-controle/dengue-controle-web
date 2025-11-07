@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Dengue - Mapa de Vistorias</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/common.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+	<link rel="icon" href="favicon.ico" type="image/x-icon">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        #map-container {
+            position: fixed;
+            top: 110px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        #filter-panel {
+            position: fixed;
+            top: 180px;
+            left: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            max-width: 320px;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+        
+        /* CABEÇALHO DO PAINEL */
+        .filter-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1em;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+			user-select: none;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+        }
+        
+        .filter-header:hover {
+            background: #f8f9fa;
+        }
+        
+        .filter-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            font-weight: 500;
+        }
+        
+        .filter-header-left i {
+            color: #dc3545;
+            font-size: 1.1em;
+        }
+        
+        .filter-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            font-size: 1em;
+            color: #666;
+            display: none;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+        }
+        
+        .filter-close:hover {
+            background: #f0f0f0;
+            color: #dc3545;
+        }
+        
+        /* CONTEÚDO DO PAINEL */
+        .filter-content {
+            padding: 1em;
+            display: none;
+        }
+
+        #filter-panel h3 {
+            margin: 0 0 1em 0;
+            color: #dc3545;
+            font-size: 1em;
+            padding-bottom: 0.8em;
+            border-bottom: 1px solid #eee;
+        }
+
+        #filter-panel label {
+            display: block;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+            color: #666;
+        }
+
+        #filter-panel select {
+            width: 100%;
+            padding: 0.5em;
+            margin-bottom: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .legend {
+            margin-top: 1em;
+            padding-top: 1em;
+            border-top: 1px solid #ddd;
+        }
+		
+		.legend-title {
+			font-weight: bold;
+			margin-bottom: .8em;
+		}
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5em;
+            font-size: 0.9em;
+        }
+
+        .legend-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 0.5em;
+        }
+
+        .icon-vistoria { background-color: #28a745; }
+        .icon-ausente { background-color: #075cff; }
+        .icon-recusa { background-color: #ff8c00; }
+        .icon-criadouro { background-color: #ffee00; }
+		.icon-larvas { background-color: #dc3545; }
+        .icon-vazio { background-color: #cdcdcd; }
+
+        /* Custom InfoWindow (restaurado para o estilo original) */
+        .custom-infowindow {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            padding: 0;
+            min-width: 300px;
+            max-width: 350px;
+        }
+
+        .custom-infowindow::after {
+            content: '';
+            position: absolute;
+            bottom: -9px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid white;
+        }
+
+        .infowindow-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: #dc3545;
+            border-radius: 8px 8px 0 0;
+            gap: 10px;
+        }
+
+        .infowindow-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.95em;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .infowindow-title i {
+            flex-shrink: 0;
+        }
+
+        .infowindow-title span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .infowindow-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .infowindow-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .infowindow-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+
+        .infowindow-content {
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .infowindow-content p {
+            margin: 8px 0;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .infowindow-content strong {
+            color: #666;
+        }
+        
+        #filter-panel.show .filter-content {
+            display: block;
+        }
+        
+        #filter-panel.show .filter-close {
+            display: block;
+        }
+
+        /* Botão Legenda fixo (canto inferior esquerdo) */
+        #legend-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #dc3545;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 20;
+            transition: transform 0.2s;
+        }
+
+        #legend-button:hover { transform: scale(1.05); }
+
+        /* Modal Legenda (removido width fixo conforme pedido) */
+        #legend-modal {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            padding: 1em;
+            z-index: 30;
+            display: none;
+            max-height: 60vh;
+            overflow-y: auto;
+            /* width removed as requested */
+        }
+
+        #legend-modal h4 { margin-top: 0; color: #dc3545; }
+
+        @media (max-width: 768px) {
+            #filter-panel {
+                max-width: 90%;
+                left: 5%;
+                top: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Placeholder para o header -->
+    <div id="header-placeholder"></div>
+
+    <div id="filter-panel">
+        <div class="filter-header" onclick="togglePanel()">
+            <div class="filter-header-left">
+                <i class="fas fa-filter"></i>
+                <span>Filtrar Locais</span>
+            </div>
+            <button class="filter-close" onclick="togglePanel(); event.stopPropagation();">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="filter-content">
+            
+		<label for="filterAtividade">Tipo Atividade:</label>
+        <select id="filterAtividade" onchange="filterMarkers()">
+            <option value="">Todas</option>
+            <option value="Vistoria">Vistoria</option>
+            <option value="Ausente">Ausente</option>
+            <option value="Recusa">Recusa</option>
+			<option value="Vazio">Lote vazio</option>
+			<option value="Retorno">Retorno</option>
+        </select>
+
+        <label for="filterCriadouro">Criadouro:</label>
+		<select id="filterCriadouro" onchange="filterMarkers()">
+			<option value="">Todos</option>
+			<option value="SEM">Sem criadouro</option>
+			<option value="COM">Com criadouro</option>
+			<option value="LARVAS">Com larvas</option>
+		</select>
+
+        <label for="filterEdificacao">Edificação:</label>
+        <select id="filterEdificacao" onchange="filterMarkers()">
+            <option value="">Todas</option>
+            <option value="Residência">Residência</option>
+            <option value="Edifício">Edifício</option>
+            <option value="Village">Village</option>
+            <option value="Comércio">Comércio</option>
+            <option value="Lote vazio">Lote vazio</option>
+            <option value="Obra">Obra</option>
+        </select>
+
+        <!-- removed legend from filter panel as requested -->
+    </div>
+</div>
+
+    <div id="map-container">
+        <div id="map"></div>
+    </div>
+
+    <!-- Botão e Modal da Legenda -->
+    <div id="legend-button" onclick="toggleLegend()"><i class="fas fa-question-circle"></i></div>
+    <div id="legend-modal" aria-hidden="true">
+        <h4>Legenda</h4>
+        <div class="legend-item">
+            <div class="legend-icon icon-vistoria"></div>
+            <span>Sem criadouro</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-icon icon-ausente"></div>
+            <span>Morador ausente</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-icon icon-recusa"></div>
+            <span>Recusa de vistoria</span>
+        </div>
+		<div class="legend-item">
+            <div class="legend-icon icon-vazio"></div>
+            <span>Lote vazio</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-icon icon-criadouro"></div>
+            <span>Criadouro identificado</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-icon icon-larvas"></div>
+            <span>Larvas identificadas</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/header.js"></script>
+    <script>
+        let map;
+        let markers = [];
+        let infoWindow;
+        let allVistorias = [];
+        let CustomInfoWindow;
+
+        let dadosFicticios = [];
+
+        async function initMap() {
+            const center = { lat: -23.793921186400585, lng: -46.02496275429459 };
+			
+			await carregarDadosJSON();
+
+            // Definir a classe CustomInfoWindow após o Google Maps estar carregado
+            CustomInfoWindow = class extends google.maps.OverlayView {
+                constructor(position, content) {
+                    super();
+                    this.position = position;
+                    this.content = content;
+                    this.div = null;
+                }
+
+                onAdd() {
+                    const div = document.createElement('div');
+                    div.className = 'custom-infowindow';
+                    div.innerHTML = this.content;
+                    this.div = div;
+
+                    const panes = this.getPanes();
+                    panes.floatPane.appendChild(div);
+                    
+                    this.draw();
+                }
+
+                draw() {
+                    const overlayProjection = this.getProjection();
+                    const position = overlayProjection.fromLatLngToDivPixel(this.position);
+
+                    if (this.div && this.div.offsetWidth > 0) {
+                        this.div.style.left = (position.x - this.div.offsetWidth / 2) + 'px';
+                        this.div.style.top = (position.y - this.div.offsetHeight - 20) + 'px';
+                        this.div.style.position = 'absolute';
+                    }
+                }
+
+                onRemove() {
+                    if (this.div) {
+                        this.div.parentNode.removeChild(this.div);
+                        this.div = null;
+                    }
+                }
+
+                close() {
+                    this.setMap(null);
+                }
+            };
+
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 15,
+                center: center,
+                mapTypeId: 'roadmap',
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }]
+                    }
+                ],
+				 mapTypeControl: true,
+				mapTypeControlOptions: {
+
+					mapTypeIds: [
+					  google.maps.MapTypeId.ROADMAP,
+					  google.maps.MapTypeId.SATELLITE
+					],
+				  }
+            });
+
+            // Adicionar listener para fechar infowindow ao clicar no mapa
+            map.addListener('click', function() {
+                if (infoWindow) {
+                    infoWindow.close();
+                }
+            });
+
+            // Carregar vistorias
+            carregarVistorias();
+        }
+		
+		 async function carregarDadosJSON() {
+            try {
+                const response = await fetch('dados.json');
+                dadosFicticios = await response.json();
+            } catch (error) {
+                console.error('Erro ao carregar dados.json:', error);
+				alert('Erro ao carregar dados');
+                dadosFicticios = [];
+            }
+        }
+
+        function carregarVistorias() {
+            // Criar marcadores
+			console.log(dadosFicticios);
+            dadosFicticios.forEach(vistoria => {
+                if (vistoria.latitude && vistoria.longitude) {
+                    criarMarcador(vistoria);
+                }
+            });
+
+            /* Ajustar zoom para mostrar todos os marcadores
+            if (markers.length > 0) {
+                const bounds = new google.maps.LatLngBounds();
+                markers.forEach(marker => bounds.extend(marker.getPosition()));
+                map.fitBounds(bounds);
+            }*/
+        }
+
+        function criarMarcador(vistoria) {
+            const position = {
+                lat: parseFloat(vistoria.latitude),
+                lng: parseFloat(vistoria.longitude)
+            };
+			
+            let iconColor = '#28a745';
+			
+            if (vistoria.larvas === 'Sim') {
+                iconColor = '#dc3545';
+            } else if (vistoria.criadouro === 'Sim') {
+                iconColor = '#ffee00';
+            } else if (vistoria.status === 'Recusa') {
+                iconColor = '#ff8c00';
+            } else if (vistoria.status === 'Ausente') {
+                iconColor = '#075cff';
+            } else if (vistoria.status === 'Vazio') {
+                iconColor = '#cdcdcd';
+            }
+
+            const marker = new google.maps.Marker({
+                position: position,
+                map: map,
+                title: `${vistoria.logradouro}, ${vistoria.numero}`,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: iconColor,
+                    fillOpacity: 0.9,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2,
+                    scale: 10
+                },
+                vistoriaData: vistoria
+            });
+
+            marker.addListener('click', function() {
+                // centralizar ponto no mapa primeiro
+                map.panTo(position);
+
+                // pequena pausa para garantir que o mapa seja reposicionado antes de abrir o infowindow
+                setTimeout(() => {
+                    // Fechar infowindow anterior
+                    if (infoWindow) {
+                        infoWindow.close();
+                    }
+
+                    const content = criarConteudoInfoWindow(vistoria);
+                    infoWindow = new CustomInfoWindow(position, content);
+                    infoWindow.setMap(map);
+
+                    // Adicionar eventos após criar o elemento
+                    setTimeout(() => {
+                        const closeBtn = document.querySelector('.infowindow-close-btn');
+                        const viewBtn = document.querySelector('.infowindow-view-btn');
+                        
+                        if (closeBtn) {
+                            closeBtn.addEventListener('click', () => {
+                                infoWindow.close();
+                            });
+                        }
+
+                        if (viewBtn) {
+                            viewBtn.addEventListener('click', () => {
+                                abrirDetalhesVistoria(vistoria.id);
+                            });
+                        }
+                    }, 100);
+                }, 250);
+            });
+
+            markers.push(marker);
+        }
+
+        function criarConteudoInfoWindow(v) {
+            return `
+                <div class="infowindow-header">
+                    <div class="infowindow-title">
+                        <i class="fas fa-home"></i>
+                        <span>${v.logradouro}, ${v.numero}</span>
+                    </div>
+                    <div class="infowindow-actions">
+                        <button class="infowindow-btn infowindow-view-btn" title="Ver detalhes">
+                            <i class="fas fa-arrow-up-right-from-square"></i>
+                        </button>
+                        <button class="infowindow-btn infowindow-close-btn" title="Fechar">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="infowindow-content">
+                    <p><strong>Módulo/Quadra/Lote:</strong> ${v.modulo}/${v.quadra}/${v.lote}</p>
+                    ${v.condominio ? `<p><strong>Condomínio:</strong> ${v.condominio}</p>` : ''}
+                    <p><strong>Edificação:</strong> ${v.edificacao}</p>
+                    <p><strong>Data da Vistoria:</strong> ${formatarData(v.dataVistoria)}</p>
+                    <p><strong>Agente:</strong> ${v.agente}</p>
+                    <p><strong>Atividade:</strong> <span style="color: ${v.status === 'Vistoria' ? '#28a745' : v.status === 'Ausente' ? '#ffc107' : '#dc3545'}">${v.status}</span></p>
+                    ${v.responsavel ? `<p><strong>Responsável:</strong> ${v.responsavel} (${v.funcao})</p>` : ''}
+                    <p><strong>Criadouro:</strong> <span style="color: ${v.criadouro === 'Sim' ? '#dc3545' : '#28a745'}">${v.criadouro || 'Não verificado'}</span></p>
+                    ${v.criadouro === 'Sim' ? `<p><strong>Tipo:</strong> ${v.tipoCriadouro}</p>` : ''}
+                    ${v.larvas === 'Sim' ? `<p style="color: #dc3545; font-weight: bold;"><i class="fas fa-exclamation-triangle"></i> Larvas encontradas!</p>` : ''}
+                    ${v.observacao ? `<p><strong>Obs:</strong> ${v.observacao}</p>` : ''}
+                </div>
+            `;
+        }
+
+        function abrirDetalhesVistoria(id) {
+            window.open(`visualizacao.html?id=${id}`, '_blank');
+        }
+
+        function formatarData(data) {
+            if (!data) return '';
+            const d = new Date(data + 'T00:00:00');
+            return d.toLocaleDateString('pt-BR');
+        }
+
+        function filterMarkers() {
+			const status = document.getElementById('filterAtividade').value;
+			const criadouro = document.getElementById('filterCriadouro').value;
+			const edificacao = document.getElementById('filterEdificacao').value;
+
+			markers.forEach(marker => {
+				const data = marker.vistoriaData;
+				let show = true;
+
+				if (status && data.status !== status) {
+					show = false;
+				}
+
+				if (show && edificacao && data.edificacao !== edificacao) {
+					show = false;
+				}
+
+				if (show && criadouro) {
+					if (criadouro === 'SEM') {
+						show = !data.criadouro || data.criadouro !== 'Sim';
+					} else if (criadouro === 'COM') {
+						show = data.criadouro === 'Sim' && data.larvas !== 'Sim';
+					} else if (criadouro === 'LARVAS') {
+						show = data.larvas === 'Sim';
+					}
+				}
+
+				marker.setVisible(show);
+			});
+		}
+
+        function togglePanel() {
+            const panel = document.getElementById('filter-panel');
+            
+            if (panel.classList.contains('show')) {
+                panel.classList.remove('show');
+            } else {
+                panel.classList.add('show');
+            }
+        }
+
+        function toggleLegend() {
+            const modal = document.getElementById('legend-modal');
+            modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Inicializar mapa quando a API carregar
+        window.initMap = initMap;
+    </script>
+
+    <!-- API do Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAmPrmafVrpKqt5_epuvG6Ocr0T66aHZgc&callback=initMap" async defer></script>
+</body>
+</html>

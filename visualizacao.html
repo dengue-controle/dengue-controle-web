@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Dengue - Visualizar Vistoria</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8em;
+            position: relative;
+        }
+
+        .section-header legend {
+            margin: 0;
+            border: none;
+            padding-bottom: 0;
+            flex: 1;
+        }
+
+        .section-divider {
+            width: 100%;
+            height: 1.5px;
+            background-color: #dc3545;
+            margin-bottom: 1em;
+        }
+		
+		input[disabled], 
+		select[disabled], 
+		textarea[disabled] {
+		  background-color: #f2f2f2; /* cinza claro */
+		  color: #777; /* texto suavizado */
+		  border: 1px solid #ccc;
+		  cursor: not-allowed;
+		  opacity: 1; /* evita que fique muito transparente */
+		}
+
+		.fieldcontain input[disabled]:hover {
+		  background-color: #ebebeb; /* muda sutilmente ao passar o mouse */
+		}
+
+		.fieldcontain label {
+		  color: #555;
+		  font-weight: 600;
+		}
+
+        .btn-edit {
+            padding: 0.4em 0.9em;
+            font-size: 0.85em;
+            background-color: transparent;
+            border: 1px solid #ddd;
+            color: #666;
+            transition: all 0.2s ease;
+            margin-left: 1em;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .btn-edit:hover {
+            background-color: #f8f9fa;
+            border-color: #999;
+            color: #333;
+        }
+
+        .btn-edit.editing {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: white;
+        }
+
+        .btn-edit.editing:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+
+        /* Destaque para seção em edição */
+        .section-editing {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 1em;
+            margin: 0 -1em 1.5em -1em;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tabs-header {
+            margin-bottom: 1.5em;
+        }
+
+        .tabs-title {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 20px;
+            color: #116565;
+            font-weight: bold;
+            margin-bottom: 0.8em;
+            text-decoration: underline;
+            text-underline-offset: .3em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.3em;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+		.tab {
+			padding: 0.8em 1.5em;
+			background: #f8f9fa;
+			border: 1px solid #e0e0e0;
+			border-bottom: none;
+			border-radius: 8px 8px 0 0;
+			cursor: pointer;
+			transition: all 0.2s ease;
+			color: #666;
+			font-weight: 500;
+			font-size: 0.95em;
+			position: relative;
+			margin-bottom: -2px;
+		}
+
+		.tab:hover {
+			background: #ffffff;
+			color: #333;
+		}
+
+		.tab.active {
+			background: white;
+			color: #dc3545;
+			font-weight: bold;
+			border: 1px solid #e0e0e0;
+			border-bottom: 3px solid #dc3545;
+			border-radius: 8px 8px 0 0;
+			z-index: 2;
+		}
+
+        .tab i {
+            margin-right: 0.5em;
+            font-size: 0.9em;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 1.5em;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .slide-content {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.4s ease-out, opacity 0.3s ease-out, margin 0.3s ease-out;
+            margin-top: 0;
+        }
+        
+        .slide-content.show {
+            max-height: 1500px;
+            opacity: 1;
+            margin-top: 1em;
+        }
+
+        #form-vistoria {
+            padding: 1.8em;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3em;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .btn-add-vistoria {
+            margin-top: 1em;
+        }
+
+        /* Ajustes para campos dentro das abas */
+        .tab-content fieldset {
+            border: none;
+            padding: 0;
+        }
+
+        .tab-content .section-header:first-child {
+            margin-top: 0;
+        }
+		
+		@media (max-width: 768px) {	
+			.btn {
+				width: auto;
+			}
+		}
+    </style>
+</head>
+<body>
+    <!-- Placeholder para o header -->
+    <div id="header-placeholder"></div>
+
+    <div id="conteudo">
+        <div class="conteudo-titulo">
+            <h1>Local de Vistoria</h1>
+        </div>
+
+        <div class="conteudo-corpo">
+            <div id="no-data-message" class="no-data">
+                <i class="fas fa-search" style="font-size: 3em; color: #ccc; margin-bottom: 0.5em;"></i>
+                <p>Nenhuma vistoria encontrada.</p>
+            </div>
+
+            <div id="form-vistoria" style="display: none;">
+                <fieldset>
+                    <!-- Dados do Imóvel -->
+					<div id="imovel" class="section">
+						<div class="section-header">
+							<legend>Dados do Imóvel</legend>
+							<button type="button" class="btn btn-secondary btn-edit" onclick="toggleEditSection('imovel')">
+								<i class="fas fa-pen"></i> <span id="btn-text-imovel">Editar</span>
+							</button>
+						</div>
+						<div class="section-divider"></div>
+
+						<div class="row">
+							<div class="col-4">
+								<div class="fieldcontain">
+									<label for="modulo">Módulo:</label>
+									<input type="text" id="modulo" name="modulo" disabled>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="fieldcontain">
+									<label for="quadra">Quadra:</label>
+									<input type="text" id="quadra" name="quadra" disabled>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="fieldcontain">
+									<label for="lote">Lote:</label>
+									<input type="text" id="lote" name="lote" disabled>
+								</div>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-8">
+								<div class="fieldcontain">
+									<label for="logradouro">Logradouro:</label>
+									<input type="text" id="logradouro" name="logradouro" disabled>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="fieldcontain">
+									<label for="numero">Número:</label>
+									<input type="text" id="numero" name="numero" disabled>
+								</div>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-6">
+								<div class="fieldcontain">
+									<label for="condominio">Nome do Condomínio:</label>
+									<input type="text" id="condominio" name="condominio" disabled>
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="fieldcontain">
+									<label for="edificacao">Edificação:</label>
+									<select id="edificacao" name="edificacao" disabled>
+										<option value="">Selecione</option>
+										<option value="Residência">Residência</option>
+										<option value="Edifício">Edifício</option>
+										<option value="Village">Village</option>
+										<option value="Comércio">Comércio</option>
+										<option value="Lote vazio">Lote vazio</option>
+										<option value="Obra">Obra</option>
+									</select>
+								</div>
+							</div>
+						</div>
+					</div>
+
+                    <!-- Localização GPS -->
+					<div id="localizacao" class="section" style="margin-top: 2em;">
+						<div class="section-header">
+							<legend>Localização GPS</legend>
+							<button type="button" class="btn btn-secondary btn-edit" onclick="toggleEditSection('localizacao')">
+								<i class="fas fa-pen"></i> <span id="btn-text-localizacao">Editar</span>
+							</button>
+						</div>
+						<div class="section-divider"></div>
+
+						<div class="row">
+							<div class="col-6">
+								<div class="fieldcontain">
+									<label for="latitude">Latitude:</label>
+									<input type="text" id="latitude" name="latitude" disabled>
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="fieldcontain">
+									<label for="longitude">Longitude:</label>
+									<input type="text" id="longitude" name="longitude" disabled>
+								</div>
+							</div>
+						</div>
+					</div>
+
+                    <!-- Abas de Vistorias -->
+                    <div class="tabs-container">
+                        <div class="tabs" id="tabs-vistorias"></div>
+                        <div id="tabs-content"></div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/header.js"></script>
+    <script>
+        let vistoriaAtual = null;
+        let vistoriasDoImovel = [];
+        let abaAtiva = 0;
+        let dadosVistorias = [];
+        let vistoriaId = null;
+
+        // Carregar dados ao iniciar
+        window.addEventListener('load', function() {
+            // Obter ID da vistoria via query param
+            const urlParams = new URLSearchParams(window.location.search);
+            vistoriaId = urlParams.get('id');
+            
+            if (!vistoriaId) {
+                alert('ID da vistoria não fornecido!');
+                document.getElementById('no-data-message').style.display = 'block';
+                document.getElementById('form-vistoria').style.display = 'none';
+                return;
+            }
+            
+            carregarVistoria();
+        });
+
+        async function carregarDadosJSON() {
+            try {
+                const response = await fetch('dados.json');
+                dadosVistorias = await response.json();
+            } catch (error) {
+                console.error('Erro ao carregar dados.json:', error);
+                // Fallback para localStorage se dados.json não existir
+                dadosVistorias = JSON.parse(localStorage.getItem('vistorias') || '[]');
+            }
+        }
+
+        async function carregarVistoria() {
+            await carregarDadosJSON();
+            
+            vistoriaAtual = dadosVistorias.find(v => v.id == vistoriaId);
+            
+            if (!vistoriaAtual) {
+                alert('Vistoria não encontrada!');
+                document.getElementById('no-data-message').innerHTML = `
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3em; color: #ff9800; margin-bottom: 0.5em;"></i>
+                    <p>Vistoria não encontrada.</p>
+                    <button class="btn btn-primary" onclick="window.history.back()">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </button>
+                `;
+                document.getElementById('no-data-message').style.display = 'block';
+                document.getElementById('form-vistoria').style.display = 'none';
+                return;
+            }
+            
+            // Filtrar todas as vistorias do mesmo imóvel
+            vistoriasDoImovel = dadosVistorias.filter(v => 
+                v.modulo === vistoriaAtual.modulo && 
+                v.quadra === vistoriaAtual.quadra && 
+                v.lote === vistoriaAtual.lote
+            );
+
+            document.getElementById('no-data-message').style.display = 'none';
+            document.getElementById('form-vistoria').style.display = 'block';
+
+            preencherDadosImovel();
+            preencherAbas();
+        }
+
+        function preencherDadosImovel() {
+            // Preencher dados do imóvel
+            document.getElementById('modulo').value = vistoriaAtual.modulo || '';
+            document.getElementById('quadra').value = vistoriaAtual.quadra || '';
+            document.getElementById('lote').value = vistoriaAtual.lote || '';
+            document.getElementById('logradouro').value = vistoriaAtual.logradouro || '';
+            document.getElementById('numero').value = vistoriaAtual.numero || '';
+            document.getElementById('condominio').value = vistoriaAtual.condominio || '';
+            document.getElementById('edificacao').value = vistoriaAtual.edificacao || '';
+            document.getElementById('latitude').value = vistoriaAtual.latitude || '';
+            document.getElementById('longitude').value = vistoriaAtual.longitude || '';
+        }
+
+        function preencherAbas() {
+            const tabsContainer = document.getElementById('tabs-vistorias');
+            const contentContainer = document.getElementById('tabs-content');
+            
+            tabsContainer.innerHTML = '';
+            contentContainer.innerHTML = '';
+
+            // Para protótipo, adicionar 3 atividades
+            const hoje = new Date(vistoriasDoImovel[0].dataVistoria);
+            const umDiaAntes = new Date(hoje);
+            umDiaAntes.setDate(umDiaAntes.getDate() - 1);
+            const doisDiasAntes = new Date(hoje);
+            doisDiasAntes.setDate(doisDiasAntes.getDate() - 2);
+
+            // Criar cópias para protótipo
+            const vistoriasPrototipo = [
+                vistoriasDoImovel[0],
+                { ...vistoriasDoImovel[0], atividade: 'Recusa', dataVistoria: umDiaAntes.toISOString().split('T')[0] },
+                { ...vistoriasDoImovel[0], atividade: 'Ausente', dataVistoria: doisDiasAntes.toISOString().split('T')[0] }
+            ];
+
+            vistoriasPrototipo.forEach((vistoria, index) => {
+                // Criar aba
+                const tab = document.createElement('div');
+                tab.className = 'tab' + (index === abaAtiva ? ' active' : '');
+                tab.onclick = () => mudarAba(index);
+                
+                const dataFormatada = new Date(vistoria.dataVistoria).toLocaleDateString('pt-BR');
+                tab.innerHTML = `<i class="fas fa-clipboard-check"></i> ${vistoria.atividade || 'Vistoria'} - ${dataFormatada}`;
+                tabsContainer.appendChild(tab);
+
+                // Criar conteúdo da aba
+                const content = document.createElement('div');
+                content.className = 'tab-content' + (index === abaAtiva ? ' active' : '');
+                content.id = `tab-content-${index}`;
+                content.innerHTML = gerarConteudoVistoria(vistoria, index);
+                contentContainer.appendChild(content);
+            });
+        }
+
+        function gerarConteudoVistoria(vistoria, index) {
+            return `
+                <fieldset>
+					<div id="dados-atividade-${index}" class="section">
+						<div class="section-header">
+							<legend>Dados da Atividade</legend>
+							<button type="button" class="btn btn-secondary btn-edit" onclick="toggleEditAtividade(${index}, 'dados-atividade')">
+								<i class="fas fa-pen"></i> <span id="btn-text-vistoria-${index}-dados-atividade">Editar</span>
+							</button>
+						</div>
+						<div class="section-divider"></div>
+
+						<div class="row">
+							<div class="col-6">
+								<div class="fieldcontain">
+									<label>Data da Atividade:</label>
+									<input type="date" id="dataVistoria-${index}" value="${vistoria.dataVistoria || ''}" disabled>
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="fieldcontain">
+									<label>Tipo da Atividade:</label>
+									<select id="atividade-${index}" disabled>
+										<option value="">Selecione</option>
+										<option value="Vistoria" ${vistoria.atividade === 'Vistoria' ? 'selected' : ''}>Vistoria</option>
+										<option value="Ausente" ${vistoria.atividade === 'Ausente' ? 'selected' : ''}>Ausente</option>
+										<option value="Recusa" ${vistoria.atividade === 'Recusa' ? 'selected' : ''}>Recusa</option>
+										<option value="Vazio" ${vistoria.atividade === 'Vazio' ? 'selected' : ''}>Lote vazio</option>
+										<option value="Retorno" ${vistoria.atividade === 'Retorno' ? 'selected' : ''}>Retorno</option>
+									</select>
+								</div>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-4">
+								<div class="fieldcontain">
+									<label>Agente:</label>
+									<input type="text" id="agente-${index}" value="${vistoria.agente || ''}" disabled>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="fieldcontain">
+									<label>Agente Acompanhante 1:</label>
+									<input type="text" id="agenteAcomp1-${index}" value="${vistoria.agenteAcomp1 || ''}" disabled>
+								</div>
+							</div>
+							<div class="col-4">
+								<div class="fieldcontain">
+									<label>Agente Acompanhante 2:</label>
+									<input type="text" id="agenteAcomp2-${index}" value="${vistoria.agenteAcomp2 || ''}" disabled>
+								</div>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-6">
+								<div class="fieldcontain">
+									<label>Responsável:</label>
+									<input type="text" id="responsavel-${index}" value="${vistoria.responsavel || ''}" disabled>
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="fieldcontain">
+									<label>Função:</label>
+									<select id="funcao-${index}" disabled>
+										<option value="">Selecione</option>
+										<option value="Zelador" ${vistoria.funcao === 'Zelador' ? 'selected' : ''}>Zelador</option>
+										<option value="Caseiro" ${vistoria.funcao === 'Caseiro' ? 'selected' : ''}>Caseiro</option>
+										<option value="Proprietário" ${vistoria.funcao === 'Proprietário' ? 'selected' : ''}>Proprietário</option>
+										<option value="Funcionário" ${vistoria.funcao === 'Funcionário' ? 'selected' : ''}>Funcionário</option>
+										<option value="Locatário" ${vistoria.funcao === 'Locatário' ? 'selected' : ''}>Locatário</option>
+										<option value="Terceirizado" ${vistoria.funcao === 'Terceirizado' ? 'selected' : ''}>Terceirizado</option>
+									</select>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div id="criadouros-${index}" class="section" style="margin-top: 2em;">
+						<div class="section-header">
+							<legend>Identificação de Criadouros</legend>
+							<button type="button" class="btn btn-secondary btn-edit" onclick="toggleEditAtividade(${index}, 'criadouros')">
+								<i class="fas fa-pen"></i> <span id="btn-text-vistoria-${index}-criadouros">Editar</span>
+							</button>
+						</div>
+						<div class="section-divider"></div>
+
+						<div class="fieldcontain">
+							<label><strong>Criadouro Encontrado:</strong> ${vistoria.criadouro || 'Não'}</label>
+						</div>
+
+						${vistoria.criadouro === 'Sim' ? `
+							<div class="fieldcontain">
+								<label><strong>Tipos de Criadouros:</strong></label>
+								<p style="margin-left: 1em;">${vistoria.tiposCriadouro || 'Nenhum informado'}</p>
+							</div>
+
+							<div class="fieldcontain">
+								<label><strong>Larvas Encontradas:</strong> ${vistoria.larvas || 'Não'}</label>
+							</div>
+
+							${vistoria.larvas === 'Sim' ? `
+								<div class="fieldcontain">
+									<label><strong>Local das Larvas:</strong></label>
+									<p style="margin-left: 1em;">${vistoria.localLarvas || 'Nenhum informado'}</p>
+								</div>
+							` : ''}
+						` : ''}
+					</div>
+					
+					<div id="acoes-${index}" class="section" style="margin-top: 2em;">
+
+						<div class="section-header">
+							<legend>Ações Realizadas</legend>
+							<button type="button" class="btn btn-secondary btn-edit" onclick="toggleEditAtividade(${index}, 'acoes')">
+								<i class="fas fa-pen"></i> <span id="btn-text-vistoria-${index}-acoes">Editar</span>
+							</button>
+						</div>
+						<div class="section-divider"></div>
+
+						<div class="fieldcontain">
+							<div class="checkbox-list">
+								<div class="checkbox-item">
+									<input type="checkbox" id="coleta-${index}" ${vistoria.coleta === 'Sim' ? 'checked' : ''} disabled>
+									<label for="coleta-${index}">Coleta realizada</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="adesivo-${index}" ${vistoria.adesivo === 'Sim' ? 'checked' : ''} disabled>
+									<label for="adesivo-${index}">Adesivo aplicado</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="aviso-${index}" ${vistoria.aviso === 'Sim' ? 'checked' : ''} disabled>
+									<label for="aviso-${index}">Aviso deixado</label>
+								</div>
+								<div class="checkbox-item">
+									<input type="checkbox" id="orientacoes-${index}" ${vistoria.orientacoes === 'Sim' ? 'checked' : ''} disabled>
+									<label for="orientacoes-${index}">Orientações ao responsável</label>
+								</div>
+							</div>
+						</div>
+
+						<div class="fieldcontain">
+							<label>Observações:</label>
+							<textarea id="observacao-${index}" disabled>${vistoria.observacao || ''}</textarea>
+						</div>
+						
+					</div>
+					
+					<div id="retorno-${index}" class="section" style="margin-top: 2em;">
+
+						<div class="section-header">
+							<legend>Agendamento de Retorno</legend>
+							<button type="button" class="btn btn-secondary btn-edit" onclick="toggleEditAtividade(${index}, 'retorno')">
+								<i class="fas fa-pen"></i> <span id="btn-text-vistoria-${index}-retorno">Editar</span>
+							</button>
+						</div>
+						<div class="section-divider"></div>
+
+						<div class="row">
+							<div class="col-6">
+								<div class="fieldcontain">
+									<label>Data de Retorno:</label>
+									<input type="date" id="dataRetorno-${index}" value="${vistoria.dataRetorno || ''}" disabled>
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="fieldcontain">
+									<label>Motivo do Retorno:</label>
+									<select id="motivoRetorno-${index}" disabled>
+										<option value="">Selecione</option>
+										<option value="Ausente" ${vistoria.motivoRetorno === 'Ausente' ? 'selected' : ''}>Morador ausente</option>
+										<option value="Recusa" ${vistoria.motivoRetorno === 'Recusa' ? 'selected' : ''}>Recusa de vistoria</option>
+										<option value="Larvas" ${vistoria.motivoRetorno === 'Larvas' ? 'selected' : ''}>Larvas identificadas</option>
+										<option value="Acompanhamento" ${vistoria.motivoRetorno === 'Acompanhamento' ? 'selected' : ''}>Acompanhamento</option>
+									</select>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+                </fieldset>
+            `;
+        }
+
+        function mudarAba(index) {
+            // Remover classe active de todas as abas
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // Adicionar classe active na aba selecionada
+            document.querySelectorAll('.tab')[index].classList.add('active');
+            document.getElementById(`tab-content-${index}`).classList.add('active');
+
+            abaAtiva = index;
+        }
+
+        function toggleEditSection(section) {
+            const fields = {
+                'imovel': ['modulo', 'quadra', 'lote', 'logradouro', 'numero', 'condominio', 'edificacao'],
+                'localizacao': ['latitude', 'longitude']
+            };
+
+            const btnText = document.getElementById(`btn-text-${section}`);
+            const btn = btnText.parentElement;
+            const isEditing = btnText.textContent === 'Editar';
+
+            if (isEditing) {
+                // Habilitar edição
+				const sectionDiv = document.getElementById(section);
+				sectionDiv.classList.remove('section');
+				sectionDiv.classList.add('section-editing');
+                fields[section].forEach(field => {
+                    document.getElementById(field).disabled = false;
+                });
+                btnText.textContent = 'Salvar';
+                btn.querySelector('i').className = 'fas fa-save';
+                btn.classList.add('editing');
+            } else {
+                // Salvar (simulado)
+                alert('Em construção');
+				const sectionDiv = document.getElementById(section);
+				sectionDiv.classList.remove('section-editing');
+				sectionDiv.classList.add('section');
+                fields[section].forEach(field => {
+                    document.getElementById(field).disabled = true;
+                });
+                btnText.textContent = 'Editar';
+                btn.querySelector('i').className = 'fas fa-pen';
+                btn.classList.remove('editing');
+            }
+        }
+
+        function toggleEditAtividade(index, section) {		
+            const btnText = document.getElementById(`btn-text-vistoria-${index}-${section}`);
+            const btn = btnText.parentElement;
+            const isEditing = btnText.textContent === 'Editar';
+
+            const sectionFields = {
+                'dados-atividade': [`dataVistoria-${index}`, `atividade-${index}`, `agente-${index}`, `agenteAcomp1-${index}`, `agenteAcomp2-${index}`, `responsavel-${index}`, `funcao-${index}`],
+                'criadouros': [], // Criadouros são apenas visualização neste exemplo
+                'acoes': [`coleta-${index}`, `adesivo-${index}`, `aviso-${index}`, `orientacoes-${index}`, `observacao-${index}`],
+                'retorno': [`dataRetorno-${index}`, `motivoRetorno-${index}`]
+            };
+			
+			const sectionDiv = document.getElementById(`${section}-${index}`);
+
+            if (isEditing) {
+                // Habilitar edição				
+				sectionDiv.classList.remove('section');
+				sectionDiv.classList.add('section-editing');
+                sectionFields[section].forEach(field => {
+                    const element = document.getElementById(field);
+                    if (element) element.disabled = false;
+                });
+                btnText.textContent = 'Salvar';
+                btn.querySelector('i').className = 'fas fa-save';
+                btn.classList.add('editing');
+            } else {
+                // Salvar (simulado)
+                alert('Em construção');
+				sectionDiv.classList.remove('section-editing');
+				sectionDiv.classList.add('section');
+                sectionFields[section].forEach(field => {
+                    const element = document.getElementById(field);
+                    if (element) element.disabled = true;
+                });
+                btnText.textContent = 'Editar';
+                btn.querySelector('i').className = 'fas fa-pen';
+                btn.classList.remove('editing');
+            }
+        }
+    </script>
+</body>
+</html>
